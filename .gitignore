@@ -1,36 +1,36 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+spring-backend/HELP.md
+spring-backend/target/
+spring-backend/.mvn/wrapper/maven-wrapper.jar
+!**spring-backend/src/main/**/target/
+!**spring-backend/src/test/**/target/
 
 ### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
+spring-backend/.apt_generated
+spring-backend/.classpath
+spring-backend/.factorypath
+spring-backend/.project
+spring-backend/.settings
+spring-backend/.springBeans
+spring-backend/.sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
+spring-backend/.idea
+spring-backend/*.iws
+spring-backend/*.iml
+spring-backend/*.ipr
 
 ### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+spring-backend/nbproject/private/
+spring-backend/nbbuild/
+spring-backend/dist/
+spring-backend/nbdist/
+spring-backend/.nb-gradle/
+spring-backend/build/
+!**spring-backend/src/main/**/build/
+!**spring-backend/src/test/**/build/
 
 ### VS Code ###
-.vscode/
+spring-backend/.vscode/
 
 ### env ###
-.env
+spring-backend/.env
