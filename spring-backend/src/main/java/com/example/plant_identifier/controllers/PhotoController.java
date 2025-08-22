@@ -31,7 +31,7 @@ public class PhotoController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<PhotoDto> uploadPhoto(
+    public ResponseEntity<?> uploadPhoto(
             @RequestParam("file") MultipartFile file
     ){
         try {
@@ -53,6 +53,8 @@ public class PhotoController {
         } catch (IOException e) {
             logger.error("Photo failed to save", e);
             return ResponseEntity.badRequest().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
