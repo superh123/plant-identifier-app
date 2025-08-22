@@ -27,7 +27,11 @@ public class Photo {
     //the description the AI service will return
     private String aiDescription;
 
-    private String plantSpecies;
+    private String scientificName;
+
+    private String commonName;
+
+    private String hash;
 
     @Column(name = "taken_at")
     private LocalDateTime takenAt;
@@ -39,10 +43,15 @@ public class Photo {
     public Photo() {}
 
 
-    public Photo(String filename, String filepath, User user) {
+    public Photo(String filename, String filepath, User user,
+                 String scientificName, String commonName, String aiDescription, String hash) {
         this.filename = filename;
         this.filepath = filepath;
         this.user = user;
+        this.scientificName = scientificName;
+        this.commonName = commonName;
+        this.aiDescription = aiDescription;
+        this.hash = hash;
         this.takenAt = LocalDateTime.now();
     }
 

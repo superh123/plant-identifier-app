@@ -12,4 +12,7 @@ import java.util.Optional;
 public interface PhotoRepository extends JpaRepository<Photo, Long> {
     Optional<Photo> findByUser(User user);
     List<Photo> findByUserOrderByTakenAtDesc(User user); //find photo from newest to oldest hence, 'descending'
+    boolean existsByScientificName(String scientificName);
+    boolean existsByHash(String hash);
+
 }
