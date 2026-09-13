@@ -46,26 +46,16 @@ def dhash_row_col(image, size=8):
 
 @app.route("/hasher", methods=['POST'])
 def dhash_int(size=8):
-    print("Hi this route has been called!")
-    print("request.files keys:", list(request.files.keys()))
-    print("request.form keys:", list(request.form.keys()))
-    print("Content-Type:", request.content_type)
-
 
     # If file isn't in request, return a 400 error
     if 'file' not in request.files:
         return 'File not in request', 400
     
-    print("Hi this route has been called!")
-
     image = request.files['file']
-    print(f"FILE: {image}")
 
     # Ensure image is actually file object and has a name
     if isinstance(image, FileStorage) and image.filename:
-        print("opening file")
         image = Image.open(image.stream)
-        print("calling dhash_row_col")
         row_hash, col_hash = dhash_row_col(image, size=size)
         return str(row_hash << (size*size) | col_hash)
     else:
