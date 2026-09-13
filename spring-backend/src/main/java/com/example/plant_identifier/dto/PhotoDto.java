@@ -11,17 +11,19 @@ import java.time.LocalDateTime;
 public class PhotoDto {
     private Long photoId;
     private String filename;
-    private String filepath;
     private String aiDescription;
     private String plantSpecies;
     private LocalDateTime takenAt;
+
+    // Temporary presigned S3 URL for viewing the image; set after construction
+    // since generating it requires calling out to FileService.
+    private String photoUrl;
 
     public PhotoDto(Photo photo) {
         this.photoId = photo.getPhotoId();
         this.aiDescription = photo.getAiDescription();
         this.plantSpecies = photo.getPlantSpecies();
         this.takenAt = photo.getTakenAt();
-        this.filepath = photo.getFilepath();
         this.filename = photo.getFilename();
     }
 }

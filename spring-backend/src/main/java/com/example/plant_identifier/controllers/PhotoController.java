@@ -4,6 +4,7 @@ import com.example.plant_identifier.dto.PhotoDto;
 import com.example.plant_identifier.entities.Photo;
 import com.example.plant_identifier.entities.User;
 import com.example.plant_identifier.repositories.UserRepository;
+import com.example.plant_identifier.service.FileService;
 import com.example.plant_identifier.service.PhotoService;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -23,11 +24,13 @@ public class PhotoController {
 
     private final PhotoService photoService;
     private final UserRepository userRepository;
+    private final FileService fileService;
     private static final Logger logger = LoggerFactory.getLogger(PhotoController.class);
 
-    public PhotoController(PhotoService photoService, UserRepository userRepository) {
+    public PhotoController(PhotoService photoService, UserRepository userRepository, FileService fileService) {
         this.photoService = photoService;
         this.userRepository = userRepository;
+        this.fileService = fileService;
     }
 
     @PostMapping("/upload")
@@ -47,6 +50,7 @@ public class PhotoController {
             Photo savedPhoto = photoService.savePhoto(file, user);
 
             PhotoDto photoDto = new PhotoDto(savedPhoto);
+            photoDto.setPhotoUrl(fileService.getPresignedUrl(savedPhoto.getS3Key()));
 
             return ResponseEntity.ok(photoDto);
 
@@ -70,7 +74,11 @@ public class PhotoController {
         List<Photo> userPhotos = photoService.getUserPhotos(user);
 
         List<PhotoDto> photoDtos = userPhotos.stream()
-                .map(photo -> new PhotoDto(photo))
+                .map(photo -> {
+                    PhotoDto dto = new PhotoDto(photo);
+                    dto.setPhotoUrl(fileService.getPresignedUrl(photo.getS3Key()));
+                    return dto;
+                })
                 .toList();
 
         return ResponseEntity.ok(photoDtos);

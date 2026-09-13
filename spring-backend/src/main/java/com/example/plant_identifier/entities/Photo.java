@@ -21,8 +21,8 @@ public class Photo {
     private String filename;
 
     @NotBlank
-    //the uuid file path + ext e.g. UUID.jpg
-    private String filepath;
+    //the S3 object key e.g. photos/UUID.jpg
+    private String s3Key;
 
     //the description the AI service will return
     private String aiDescription;
@@ -43,10 +43,10 @@ public class Photo {
     public Photo() {}
 
 
-    public Photo(String filename, String filepath, User user,
+    public Photo(String filename, String s3Key, User user,
                  String scientificName, String commonName, String aiDescription, String hash) {
         this.filename = filename;
-        this.filepath = filepath;
+        this.s3Key = s3Key;
         this.user = user;
         this.scientificName = scientificName;
         this.commonName = commonName;

@@ -4,90 +4,98 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.UUID;
 
 @Service
 public class FileService {
 
-    //where files will be uploaded for now
-    private final String uploadDir;
+    private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
-    @Value("${app.base-url}")
-    private String baseUrl;
+    @Value("${aws.s3.bucket}")
+    private String bucketName;
 
-    @Value("${server.port}")
-    private String serverPort;
-
-
-    //Create directory if not already there when backend booted up
-    public FileService() throws IOException {
-
-        // Get absolute path for user home directory
-        String userHome = System.getProperty("user.home");
-        System.out.println(userHome);
-
-        this.uploadDir = userHome + File.separator + "uploads" + File.separator + "photos" + File.separator;
-
-        // Alternative: Use temp directory?
-        // String tempDir = System.getProperty("java.io.tmpdir");
-        // this.uploadDir = tempDir + File.separator + "app-uploads" + File.separator + "photos" + File.separator;
-
-
-        try {
-            Files.createDirectories(Paths.get(uploadDir));
-            System.out.println("Upload directory created at: " + uploadDir);
-        } catch (IOException exception){
-            throw new RuntimeException("Could not create upload directory");
-        }
+    public FileService(S3Client s3Client, S3Presigner s3Presigner) {
+        this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
     }
 
+    /**
+     * Uploads the file to S3 and returns the S3 object key
+     * (e.g. "photos/550e8400-e29b-41d4-a716-446655440000.jpg").
+     */
     public String saveFile(MultipartFile file) throws IOException {
-        if (file.isEmpty()){
+
+        if (file.isEmpty()) {
             throw new IllegalArgumentException("File is empty");
         }
 
-        //Validate file type
+        // Validate file type
         String contentType = file.getContentType();
-        if (!validImageType(contentType)){
+        if (!validImageType(contentType)) {
             throw new IllegalArgumentException("Invalid image type. Only images allowed");
         }
 
-        //Generate unique filename
+        // Get extension from original filename
         String originalFilename = file.getOriginalFilename();
         String extension = FilenameUtils.getExtension(originalFilename);
-        String uniqueFilename = UUID.randomUUID().toString() + "." + extension;
 
-        //Save file
-        Path filePath = Paths.get(uploadDir + uniqueFilename);
-        file.transferTo(filePath.toFile());
+        // Generate unique S3 object key
+        String uniqueFilename = UUID.randomUUID() + "." + extension;
+        String s3Key = "photos/" + uniqueFilename;
 
-        return uniqueFilename;
+        // Upload to S3
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(s3Key)
+                .contentType(contentType)
+                .build();
+
+        s3Client.putObject(
+                putObjectRequest,
+                RequestBody.fromInputStream(file.getInputStream(), file.getSize())
+        );
+
+        return s3Key;
+    }
+
+    /**
+     * Generates a temporary (15 minute) presigned URL the frontend can use to
+     * view a private S3 object without the bucket needing to be public.
+     */
+    public String getPresignedUrl(String s3Key) {
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(s3Key)
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(15))
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+
+        return presignedRequest.url().toString();
     }
 
     private boolean validImageType(String contentType) {
         return contentType != null && (
                 contentType.equals("image/jpeg") ||
-                        contentType.equals("image/png") ||
-                        contentType.equals("image/jpg") ||
-                        contentType.equals("image/gif")
+                contentType.equals("image/png") ||
+                contentType.equals("image/jpg") ||
+                contentType.equals("image/gif")
         );
     }
-
-    public String getFileUrl(String filename){
-        // Return full absolute URL instead of relative path
-        return baseUrl + ":" + serverPort + "/uploads/photos/" + filename;
-    }
-
-    //used in FileUploadConfig to quickly access a photo
-    public String getUploadDir() {
-        return uploadDir;
-    }
-
-
 }

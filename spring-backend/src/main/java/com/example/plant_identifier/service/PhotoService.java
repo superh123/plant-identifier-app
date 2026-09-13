@@ -71,16 +71,13 @@ public class PhotoService {
             throw new IllegalArgumentException("Plant already exists in your collection!");
         }
 
-        //Stores file locally and returns unique filename
-        String filename = fileService.saveFile(file);
-
-        //Gives us the file URL on our system
-        //String fileURL = fileService.getFileUrl(filename);
+        //Uploads file to AWS S3 and returns the S3 object key
+        String s3Key = fileService.saveFile(file);
 
         //Create a new photo object, to store in database
         Photo photo = new Photo(
                 file.getOriginalFilename(),
-                filename,
+                s3Key,
                 user,
                 photo_results.get(0),
                 photo_results.get(1),
